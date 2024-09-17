@@ -4,6 +4,7 @@ import { Poppins } from "next/font/google";
 import { ThemeProvider } from "~/components/theme-provider";
 import { Toaster } from "~/components/ui/sonner";
 import { SessionProvider } from "next-auth/react";
+import ThemeSwitcher from "~/components/ThemeSwitcher";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -25,10 +26,11 @@ export default function RootLayout({
   return (
     <html lang="en" className="m-0 h-dvh overflow-hidden p-0">
       <body
-        className={`dark flex h-dvh flex-col bg-background font-sans antialiased ${poppins.variable}`}
+        className={`flex h-dvh flex-col bg-background font-sans antialiased ${poppins.variable}`}
       >
         <SessionProvider>
           <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+            <ThemeSwitcher />
             <Toaster position="top-right" />
             {children}
           </ThemeProvider>
