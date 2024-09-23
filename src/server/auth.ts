@@ -9,17 +9,14 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
     usersTable: users,
     accountsTable: accounts,
     sessionsTable: sessions,
-    verificationTokensTable: verificationTokens ,
-  }), 
+    verificationTokensTable: verificationTokens,
+  }),
   providers: [
     Google({
       authorization: {
         params: {
           scope:
             "openid email profile https://www.googleapis.com/auth/forms.body https://www.googleapis.com/auth/forms.body.readonly https://www.googleapis.com/auth/forms.responses.readonly https://www.googleapis.com/auth/drive.metadata.readonly",
-          prompt: "consent",
-          access_type: "offline",
-          response_type: "code",
         },
       },
     }),

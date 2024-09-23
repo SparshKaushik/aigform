@@ -108,10 +108,7 @@ export default function Header() {
             className="ml-auto overflow-hidden rounded-full"
           >
             <Avatar>
-              <AvatarImage
-                src={session?.user?.image ?? ""}
-                referrerPolicy="no-referrer"
-              />
+              <AvatarImage src={session?.user?.image ?? ""} />
               <AvatarFallback>
                 {session?.user?.name
                   ?.split(" ")
