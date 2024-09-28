@@ -12,7 +12,6 @@ type TokenResponse = {
 };
 
 async function getToken(refreshToken: string) {
-  console.log("getToken", refreshToken);
   const resp = await axios.post("https://oauth2.googleapis.com/token", {
     client_id: env.GOOGLE_CLIENT_ID,
     client_secret: env.GOOGLE_CLIENT_SECRET,
@@ -28,6 +27,7 @@ export async function getUserToken(id: string) {
   const user = users[0];
   if ((Number(`${user?.expires_at}000`) ?? 0) + 1000 * 60 * 2 > Date.now())
     return user?.access_token;
+  if (!user?.refresh_token) return null;
   const token = await getToken(user?.refresh_token ?? "");
   await db
     .update(accounts)

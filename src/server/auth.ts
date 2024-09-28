@@ -17,6 +17,9 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         params: {
           scope:
             "openid email profile https://www.googleapis.com/auth/forms.body https://www.googleapis.com/auth/forms.body.readonly https://www.googleapis.com/auth/forms.responses.readonly https://www.googleapis.com/auth/drive.metadata.readonly",
+          prompt: "consent",
+          access_type: "offline",
+          response_type: "code",
         },
       },
     }),

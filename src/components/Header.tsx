@@ -23,13 +23,10 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { usePathname } from "next/navigation";
 import { navRoutes, routesNames } from "~/lib/constants";
-import { signOut, useSession } from "next-auth/react";
+import { signOut } from "next-auth/react";
+import { type Session } from "next-auth";
 
-export default function Header() {
-  // const settings = settings$.get();
-
-  const { data: session } = useSession();
-
+export default function Header(props: { session: Session | null }) {
   const pathname = usePathname();
 
   return (
@@ -108,9 +105,12 @@ export default function Header() {
             className="ml-auto overflow-hidden rounded-full"
           >
             <Avatar>
-              <AvatarImage src={session?.user?.image ?? ""} />
+              <AvatarImage
+                src={props.session?.user?.image ?? ""}
+                referrerPolicy="no-referrer"
+              />
               <AvatarFallback>
-                {session?.user?.name
+                {props.session?.user?.name
                   ?.split(" ")
                   .map((s) => s[0])
                   .join("")}
@@ -119,7 +119,9 @@ export default function Header() {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="min-w-40" align="end">
-          <DropdownMenuLabel>{session?.user?.name ?? ""}</DropdownMenuLabel>
+          <DropdownMenuLabel>
+            {props.session?.user?.name ?? ""}
+          </DropdownMenuLabel>
           <DropdownMenuSeparator />
           <Link href="/settings">
             <DropdownMenuItem>Settings</DropdownMenuItem>

@@ -35,7 +35,7 @@ import {
   DrawerTitle,
 } from "./drawer";
 import { useState } from "react";
-import { useMediaQuery } from "~/lib/utils";
+import { useMediaQuery } from "~/lib/utils.client";
 import { getPageRange } from "./datatable-pagination";
 
 interface CustomPaginationProps {

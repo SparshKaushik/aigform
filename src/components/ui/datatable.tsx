@@ -16,7 +16,7 @@ import {
 import { ArrowUpDown } from "lucide-react";
 import { Fragment, useEffect, useState } from "react";
 
-import { cn, useMediaQuery } from "~/lib/utils";
+import { cn, useMediaQuery } from "~/lib/utils.client";
 
 import { Checkbox } from "./checkbox";
 import { Button } from "~/components/ui/button";
@@ -255,7 +255,7 @@ export function MobileTable<TData>(table: ReactTable<TData>) {
                 </AccordionTrigger>
                 {row.getVisibleCells().map((cell) =>
                   // @ts-expect-error - `inAccordionContent` not in meta - cry about it
-                  !cell.column.columnDef.meta?.inAccordionContent ?? false ? (
+                  (!cell.column.columnDef.meta?.inAccordionContent ?? false) ? (
                     <AccordionContent key={cell.id}>
                       {cell.column.columnDef.header as string}
                       <br />

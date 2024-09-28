@@ -1,7 +1,9 @@
+import { sql } from "drizzle-orm";
 import {
   ALargeSmallIcon,
   CopyIcon,
   EllipsisVerticalIcon,
+  PlusIcon,
   Trash2Icon,
   UsersIcon,
 } from "lucide-react";
@@ -14,11 +16,39 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
+import { Pagination } from "~/components/ui/pagination";
+import { db } from "~/server/db";
+import { forms } from "~/server/db/schema";
 
-export default function Dashboard() {
+export default async function Dashboard({
+  searchParams,
+}: {
+  searchParams: Record<string, string>;
+}) {
+  const page = parseInt(searchParams.page ?? "1");
+  const limit = parseInt(searchParams.limit ?? "10");
+
+  const total = await db
+    .select({
+      count: sql`count(*)`.mapWith(Number),
+    })
+    .from(forms);
+
+  const frms = await db
+    .select()
+    .from(forms)
+    .limit(limit)
+    .offset((page - 1) * limit);
+
   return (
     <div className="flex flex-1 flex-col gap-6 overflow-auto px-4 py-2 md:px-6">
-      <h1 className="text-2xl font-bold">Forms</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold">Forms</h1>
+        <Button variant="default" className="flex items-center gap-2">
+          <PlusIcon className="size-4" />
+          New Form
+        </Button>
+      </div>
       <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
         <Link href={`/dashboard/forms/1`}>
           <Card>
@@ -63,6 +93,7 @@ export default function Dashboard() {
             </CardFooter>
           </Card>
         </Link>
+        <Pagination></Pagination>
       </div>
     </div>
   );

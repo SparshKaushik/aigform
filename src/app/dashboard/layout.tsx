@@ -18,7 +18,7 @@ export default async function DashboardLayout({
     <div className="flex h-dvh overflow-hidden">
       <LeftNavAside />
       <div className="flex flex-1 flex-col overflow-hidden sm:gap-4 md:py-4">
-        <Header />
+        <Header session={session} />
         {children}
       </div>
     </div>

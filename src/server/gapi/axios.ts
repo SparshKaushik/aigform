@@ -16,7 +16,6 @@ formsapi.interceptors.request.use(async (config) => {
   if (!user) return config;
   const token = await getUserToken(user);
   if (!token) return config;
-  console.log(token);
   config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
