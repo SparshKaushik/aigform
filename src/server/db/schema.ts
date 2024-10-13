@@ -6,7 +6,6 @@ import {
   pgEnum,
   pgTable,
   primaryKey,
-  serial,
   text,
   timestamp,
   varchar,
@@ -16,9 +15,8 @@ import { type AdapterAccountType } from "next-auth/adapters";
 export const forms = pgTable(
   "form",
   {
-    id: serial("id").primaryKey(),
+    id: text("id").primaryKey(),
     name: text("name"),
-    gFormID: text("gFormID"),
     createdById: varchar("createdById", { length: 255 })
       .notNull()
       .references(() => users.id),
@@ -28,8 +26,8 @@ export const forms = pgTable(
     updatedAt: timestamp("updatedAt", { withTimezone: true }),
   },
   (example) => ({
+    idIndex: index("id_idx").on(example.id),
     nameIndex: index("name_idx").on(example.name),
-    gFormIDIndex: index("gFormID_idx").on(example.gFormID),
     createdByIdIdx: index("createdById_idx").on(example.createdById),
   }),
 );
@@ -45,6 +43,11 @@ export const users = pgTable("user", {
   emailVerified: timestamp("emailVerified", { mode: "date" }),
   image: text("image"),
   gaccessType: gaccessTypeEnum("gaccessType"),
+});
+
+export const userids = pgTable("userids", {
+  id: text("id").primaryKey(),
+  email: text("email").unique().notNull(),
 });
 
 export const accounts = pgTable(

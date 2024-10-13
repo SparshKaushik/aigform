@@ -1,8 +1,9 @@
+"use client";
+
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
   EllipsisVertical,
-  Loader2,
 } from "lucide-react";
 import {
   Select,
@@ -11,21 +12,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import { Button } from "./button";
-import { Input } from "./input";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
 import {
   Pagination,
   PaginationContent,
   PaginationEllipsis,
   PaginationItem,
   PaginationLink,
-} from "./pagination";
+} from "./ui/pagination";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "./dropdown-menu";
+} from "./ui/dropdown-menu";
 import {
   Drawer,
   DrawerClose,
@@ -33,25 +34,21 @@ import {
   DrawerFooter,
   DrawerHeader,
   DrawerTitle,
-} from "./drawer";
+} from "./ui/drawer";
 import { useState } from "react";
 import { useMediaQuery } from "~/lib/utils.client";
-import { getPageRange } from "./datatable-pagination";
+import { getPageRange } from "./ui/datatable-pagination";
 
 interface CustomPaginationProps {
   totalRows: number;
-  loading?: boolean;
   pageIndex?: number;
   pageSize?: number;
-  selectedRows?: number;
   enablePageSizeChange?: boolean;
   onPaginationChange?: (pageIndex: number, pageSize: number) => void;
 }
 
 export function CustomPagination({
   totalRows,
-  loading = true,
-  selectedRows,
   pageIndex = 0,
   pageSize = 10,
   enablePageSizeChange = false,
@@ -76,20 +73,7 @@ export function CustomPagination({
 
   return (
     <div className="flex items-center justify-between px-2">
-      <div className="flex-1 text-sm text-muted-foreground">
-        {selectedRows && (
-          <>
-            {selectedRows} of {totalRows} row(s) selected.
-          </>
-        )}
-      </div>
       <div className="flex w-full items-center justify-end space-x-6 lg:space-x-8">
-        {loading && (
-          <div>
-            <Loader2 className="size-5 animate-spin" />
-            <span className="sr-only">Loading</span>
-          </div>
-        )}
         {enablePageSizeChange && (
           <div className="hidden items-center space-x-2 md:flex">
             <p className="text-sm font-medium">Items per page</p>

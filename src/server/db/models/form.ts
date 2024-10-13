@@ -1,0 +1,45 @@
+"use server";
+
+import { eq, inArray } from "drizzle-orm";
+import { db } from "..";
+import { forms as formsDB } from "../schema";
+import { auth } from "~/server/auth";
+
+export async function importForms(
+  forms: {
+    id: string;
+    name: string;
+  }[],
+) {
+  const user = (await auth())?.user?.id;
+  if (!user) return;
+  const existingForms = await db
+    .select()
+    .from(formsDB)
+    .where(
+      inArray(
+        formsDB.id,
+        forms.map((f) => f.id),
+      ),
+    );
+
+  return Promise.all(
+    forms
+      .filter((f) => !existingForms.find((ef) => ef.id === f.id))
+      .map(async (form) => {
+        await db.insert(formsDB).values({
+          id: form.id,
+          name: form.name,
+          createdById: user,
+        });
+      }),
+  );
+}
+
+export async function removeForms(forms: string[]) {
+  return Promise.all(
+    forms.map(async (form) => {
+      await db.delete(formsDB).where(eq(formsDB.id, form));
+    }),
+  );
+}
