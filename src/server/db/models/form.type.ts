@@ -22,21 +22,21 @@ export type Form = {
   linkedSheetId?: string; // Output only
 };
 
-type Info = {
+export type Info = {
   title: string; // Required
   documentTitle?: string; // Output only
   description?: string;
 };
 
-type FormSettings = {
+export type FormSettings = {
   quizSettings?: QuizSettings;
 };
 
-type QuizSettings = {
+export type QuizSettings = {
   isQuiz: boolean;
 };
 
-type Item = {
+export type Item = {
   itemId?: string;
   title?: string;
   description?: string;
@@ -48,12 +48,12 @@ type Item = {
   videoItem?: VideoItem;
 };
 
-type QuestionItem = {
+export type QuestionItem = {
   question: Question;
   image?: Image;
 };
 
-type Question = {
+export type Question = {
   questionId?: string; // Read only
   required?: boolean;
   grading?: Grading;
@@ -66,7 +66,7 @@ type Question = {
   rowQuestion?: RowQuestion;
 };
 
-type ChoiceQuestion = {
+export type ChoiceQuestion = {
   type: ChoiceType; // Required
   options: Option[]; // Required
   shuffle?: boolean;
@@ -79,7 +79,7 @@ enum ChoiceType {
   DROP_DOWN = "DROP_DOWN",
 }
 
-type Option = {
+export type Option = {
   value: string; // Required
   image?: Image;
   isOther?: boolean;
@@ -94,14 +94,14 @@ enum GoToAction {
   SUBMIT_FORM = "SUBMIT_FORM",
 }
 
-type Image = {
+export type Image = {
   contentUri?: string; // Output only
   altText?: string;
   properties?: MediaProperties;
   sourceUri?: string; // Input only
 };
 
-type MediaProperties = {
+export type MediaProperties = {
   alignment?: Alignment;
   width?: number;
 };
@@ -113,27 +113,27 @@ enum Alignment {
   CENTER = "CENTER",
 }
 
-type TextQuestion = {
+export type TextQuestion = {
   paragraph?: boolean;
 };
 
-type ScaleQuestion = {
+export type ScaleQuestion = {
   low: number; // Required
   high: number; // Required
   lowLabel?: string;
   highLabel?: string;
 };
 
-type DateQuestion = {
+export type DateQuestion = {
   includeTime?: boolean;
   includeYear?: boolean;
 };
 
-type TimeQuestion = {
+export type TimeQuestion = {
   duration?: boolean;
 };
 
-type FileUploadQuestion = {
+export type FileUploadQuestion = {
   folderId: string; // Required
   types?: FileType[];
   maxFiles?: number;
@@ -153,11 +153,11 @@ enum FileType {
   AUDIO = "AUDIO",
 }
 
-type RowQuestion = {
+export type RowQuestion = {
   title: string; // Required
 };
 
-type Grading = {
+export type Grading = {
   pointValue: number; // Required
   correctAnswers: CorrectAnswers; // Required
   whenRight?: Feedback;
@@ -165,47 +165,47 @@ type Grading = {
   generalFeedback?: Feedback;
 };
 
-type CorrectAnswers = {
+export type CorrectAnswers = {
   answers: CorrectAnswer[];
 };
 
-type CorrectAnswer = {
+export type CorrectAnswer = {
   value: string; // Required
 };
 
-type Feedback = {
+export type Feedback = {
   // Define Feedback properties here
 };
 
-type QuestionGroupItem = {
+export type QuestionGroupItem = {
   questions: Question[]; // Required
   image?: Image;
   grid?: Grid;
 };
 
-type Grid = {
+export type Grid = {
   columns: ChoiceQuestion; // Required
   shuffleQuestions?: boolean;
 };
 
-type PageBreakItem = {
-  // This type has no fields
+export type PageBreakItem = {
+  // This export type has no fields
 };
 
-type TextItem = {
-  // This type has no fields
+export type TextItem = {
+  // This export type has no fields
 };
 
-type ImageItem = {
+export type ImageItem = {
   image: Image; // Required
 };
 
-type VideoItem = {
+export type VideoItem = {
   video: Video; // Required
   caption?: string;
 };
 
-type Video = {
+export type Video = {
   youtubeUri: string; // Required
   properties?: MediaProperties;
 };
