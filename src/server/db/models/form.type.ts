@@ -106,7 +106,7 @@ export type MediaProperties = {
   width?: number;
 };
 
-enum Alignment {
+export enum Alignment {
   ALIGNMENT_UNSPECIFIED = "ALIGNMENT_UNSPECIFIED",
   LEFT = "LEFT",
   RIGHT = "RIGHT",

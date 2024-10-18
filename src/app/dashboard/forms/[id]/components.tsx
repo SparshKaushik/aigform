@@ -2,6 +2,7 @@
 
 import { Loader2Icon } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 import { Button } from "~/components/ui/button";
 import {
   Card,
@@ -12,22 +13,28 @@ import {
 } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
 import { ScrollArea } from "~/components/ui/scroll-area";
-import type {
-  ChoiceQuestion,
-  DateQuestion,
-  FileUploadQuestion,
-  Form as FormType,
-  ImageItem,
-  Item,
-  Question,
-  QuestionGroupItem,
-  QuestionItem,
-  RowQuestion,
-  ScaleQuestion,
-  TextQuestion,
-  TimeQuestion,
-  VideoItem,
+import { generateForm } from "~/server/ai";
+import {
+  type Grading,
+  type ChoiceQuestion,
+  type DateQuestion,
+  type FileUploadQuestion,
+  type Form as FormType,
+  type Grid,
+  type Image,
+  type ImageItem,
+  type Item,
+  type Question,
+  type QuestionGroupItem,
+  type QuestionItem,
+  type RowQuestion,
+  type ScaleQuestion,
+  type TextQuestion,
+  type TimeQuestion,
+  type VideoItem,
+  Alignment,
 } from "~/server/db/models/form.type";
+import { updateForm } from "~/server/gapi/form";
 
 export function Form({ formm }: { formm: FormType }) {
   const [messages, setMessages] = useState<
@@ -42,14 +49,14 @@ export function Form({ formm }: { formm: FormType }) {
   const [form, setForm] = useState<FormType>(formm);
 
   return (
-    <div className="flex h-full flex-col items-center gap-4 px-8">
+    <div className="flex h-full flex-col items-center gap-4 px-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">
           {!!form.info.title ? form.info.title : form.info.documentTitle}
         </h1>
       </div>
       <div className="grid h-full w-full grid-cols-2">
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4 px-4">
           {form.items?.map((item, index) => (
             <ItemRenderer key={index} item={item} />
           ))}
@@ -82,7 +89,11 @@ export function Form({ formm }: { formm: FormType }) {
                 onChange={(e) => setMessageInput(e.target.value)}
               />
               <Button
-                onClick={() => {
+                onClick={async () => {
+                  const prompt = `
+                  current form = ${JSON.stringify(form, null, 2)}
+                  ${messageInput}
+                  `;
                   setMessages((messages) => [
                     ...messages,
                     { role: "user", content: messageInput },
@@ -95,6 +106,20 @@ export function Form({ formm }: { formm: FormType }) {
                       content: <Loader2Icon className="size-5 animate-spin" />,
                     },
                   ]);
+                  const res = await generateForm(prompt);
+                  console.log(res);
+                  setMessages((messages) => [
+                    ...messages.slice(0, -1),
+                    {
+                      role: "bot",
+                      content: res.message,
+                    },
+                  ]);
+                  if (res.request) {
+                    const update = await updateForm(res.request, form.formId);
+                    if (update.form) setForm(update.form);
+                    else toast.error(update.error);
+                  }
                 }}
               >
                 Send
@@ -108,17 +133,34 @@ export function Form({ formm }: { formm: FormType }) {
 }
 
 function ItemRenderer({ item }: { item: Item }) {
-  if (item.questionItem)
-    return <QuestionItemRenderer questionItem={item.questionItem} />;
-  if (item.questionGroupItem)
+  if (!item) {
     return (
-      <QuestionGroupItemRenderer questionGroupItem={item.questionGroupItem} />
+      <div className="mb-4 rounded-lg border p-4 shadow-sm">
+        No item data available
+      </div>
     );
-  if (item.pageBreakItem) return <PageBreakItemRenderer />;
-  if (item.textItem) return <TextItemRenderer />;
-  if (item.imageItem) return <ImageItemRenderer imageItem={item.imageItem} />;
-  if (item.videoItem) return <VideoItemRenderer videoItem={item.videoItem} />;
-  return null;
+  }
+
+  return (
+    <div className="mb-4 rounded-lg border p-4 shadow-sm">
+      {item.title && (
+        <h2 className="mb-2 text-xl font-semibold">{item.title}</h2>
+      )}
+      {item.description && (
+        <p className="mb-4 text-gray-600">{item.description}</p>
+      )}
+      {item.questionItem && (
+        <QuestionItemRenderer questionItem={item.questionItem} />
+      )}
+      {item.questionGroupItem && (
+        <QuestionGroupItemRenderer questionGroupItem={item.questionGroupItem} />
+      )}
+      {item.pageBreakItem && <PageBreakItemRenderer />}
+      {item.textItem && <TextItemRenderer />}
+      {item.imageItem && <ImageItemRenderer imageItem={item.imageItem} />}
+      {item.videoItem && <VideoItemRenderer videoItem={item.videoItem} />}
+    </div>
+  );
 }
 
 function QuestionItemRenderer({
@@ -128,9 +170,6 @@ function QuestionItemRenderer({
 }) {
   return (
     <div className="mb-6">
-      <h3 className="mb-2 text-xl font-semibold">
-        {questionItem.question.questionId}
-      </h3>
       <QuestionRenderer question={questionItem.question} />
       {questionItem.image && <ImageRenderer image={questionItem.image} />}
     </div>
@@ -138,25 +177,35 @@ function QuestionItemRenderer({
 }
 
 function QuestionRenderer({ question }: { question: Question }) {
-  if (question.choiceQuestion)
-    return <ChoiceQuestionRenderer choiceQuestion={question.choiceQuestion} />;
-  if (question.textQuestion)
-    return <TextQuestionRenderer textQuestion={question.textQuestion} />;
-  if (question.scaleQuestion)
-    return <ScaleQuestionRenderer scaleQuestion={question.scaleQuestion} />;
-  if (question.dateQuestion)
-    return <DateQuestionRenderer dateQuestion={question.dateQuestion} />;
-  if (question.timeQuestion)
-    return <TimeQuestionRenderer timeQuestion={question.timeQuestion} />;
-  if (question.fileUploadQuestion)
-    return (
-      <FileUploadQuestionRenderer
-        fileUploadQuestion={question.fileUploadQuestion}
-      />
-    );
-  if (question.rowQuestion)
-    return <RowQuestionRenderer rowQuestion={question.rowQuestion} />;
-  return null;
+  return (
+    <div className="mb-4">
+      {question.required && <span className="ml-1 text-red-500">*</span>}
+      {question.grading && <GradingRenderer grading={question.grading} />}
+      {question.choiceQuestion && (
+        <ChoiceQuestionRenderer choiceQuestion={question.choiceQuestion} />
+      )}
+      {question.textQuestion && (
+        <TextQuestionRenderer textQuestion={question.textQuestion} />
+      )}
+      {question.scaleQuestion && (
+        <ScaleQuestionRenderer scaleQuestion={question.scaleQuestion} />
+      )}
+      {question.dateQuestion && (
+        <DateQuestionRenderer dateQuestion={question.dateQuestion} />
+      )}
+      {question.timeQuestion && (
+        <TimeQuestionRenderer timeQuestion={question.timeQuestion} />
+      )}
+      {question.fileUploadQuestion && (
+        <FileUploadQuestionRenderer
+          fileUploadQuestion={question.fileUploadQuestion}
+        />
+      )}
+      {question.rowQuestion && (
+        <RowQuestionRenderer rowQuestion={question.rowQuestion} />
+      )}
+    </div>
+  );
 }
 
 function ChoiceQuestionRenderer({
@@ -169,9 +218,23 @@ function ChoiceQuestionRenderer({
       <p className="mb-2">Type: {choiceQuestion.type}</p>
       <ul className="list-disc pl-5">
         {choiceQuestion.options.map((option, index) => (
-          <li key={index}>{option.value}</li>
+          <li key={index} className="mb-1">
+            {option.value}
+            {option.image && <ImageRenderer image={option.image} />}
+            {option.isOther && (
+              <span className="ml-2 text-gray-500">(Other)</span>
+            )}
+            {option.goToAction && (
+              <span className="ml-2 text-blue-500">
+                Go to: {option.goToAction}
+              </span>
+            )}
+          </li>
         ))}
       </ul>
+      {choiceQuestion.shuffle && (
+        <p className="mt-2 text-sm text-gray-500">Options are shuffled</p>
+      )}
     </div>
   );
 }
@@ -195,11 +258,17 @@ function ScaleQuestionRenderer({
 }) {
   return (
     <div>
-      <p>
+      <p className="mb-2">
         Scale from {scaleQuestion.low} to {scaleQuestion.high}
       </p>
-      {scaleQuestion.lowLabel && <span>Low: {scaleQuestion.lowLabel}</span>}
-      {scaleQuestion.highLabel && <span>High: {scaleQuestion.highLabel}</span>}
+      <div className="flex justify-between">
+        {scaleQuestion.lowLabel && (
+          <span className="text-sm">{scaleQuestion.lowLabel}</span>
+        )}
+        {scaleQuestion.highLabel && (
+          <span className="text-sm">{scaleQuestion.highLabel}</span>
+        )}
+      </div>
     </div>
   );
 }
@@ -212,8 +281,12 @@ function DateQuestionRenderer({
   return (
     <div>
       <p>Date question</p>
-      {dateQuestion.includeTime && <span>Includes time</span>}
-      {dateQuestion.includeYear && <span>Includes year</span>}
+      {dateQuestion.includeTime && (
+        <span className="ml-2 text-sm">Includes time</span>
+      )}
+      {dateQuestion.includeYear && (
+        <span className="ml-2 text-sm">Includes year</span>
+      )}
     </div>
   );
 }
@@ -226,7 +299,7 @@ function TimeQuestionRenderer({
   return (
     <div>
       <p>Time question</p>
-      {timeQuestion.duration && <span>Duration</span>}
+      {timeQuestion.duration && <span className="ml-2 text-sm">Duration</span>}
     </div>
   );
 }
@@ -238,16 +311,19 @@ function FileUploadQuestionRenderer({
 }) {
   return (
     <div>
-      <p>File upload question</p>
-      <p>Folder ID: {fileUploadQuestion.folderId}</p>
+      <p className="mb-2">File upload question</p>
       {fileUploadQuestion.types && (
-        <p>Allowed types: {fileUploadQuestion.types.join(", ")}</p>
+        <p className="text-sm">
+          Allowed types: {fileUploadQuestion.types.join(", ")}
+        </p>
       )}
       {fileUploadQuestion.maxFiles && (
-        <p>Max files: {fileUploadQuestion.maxFiles}</p>
+        <p className="text-sm">Max files: {fileUploadQuestion.maxFiles}</p>
       )}
       {fileUploadQuestion.maxFileSize && (
-        <p>Max file size: {fileUploadQuestion.maxFileSize}</p>
+        <p className="text-sm">
+          Max file size: {fileUploadQuestion.maxFileSize}
+        </p>
       )}
     </div>
   );
@@ -267,7 +343,7 @@ function QuestionGroupItemRenderer({
   questionGroupItem: QuestionGroupItem;
 }) {
   return (
-    <div className="mb-4 border p-4">
+    <div className="mb-4 rounded border p-4">
       <h3 className="mb-2 text-lg font-semibold">Question Group</h3>
       {questionGroupItem.questions.map((question, index) => (
         <QuestionRenderer key={index} question={question} />
@@ -280,12 +356,14 @@ function QuestionGroupItemRenderer({
   );
 }
 
-function GridRenderer({ grid }: { grid: QuestionGroupItem["grid"] }) {
+function GridRenderer({ grid }: { grid: Grid }) {
   return (
-    <div>
-      <h4 className="text-md font-semibold">Grid</h4>
-      {grid && <ChoiceQuestionRenderer choiceQuestion={grid.columns} />}
-      {grid?.shuffleQuestions && <p>Questions are shuffled</p>}
+    <div className="mt-4">
+      <h4 className="text-md mb-2 font-semibold">Grid</h4>
+      <ChoiceQuestionRenderer choiceQuestion={grid.columns} />
+      {grid.shuffleQuestions && (
+        <p className="mt-2 text-sm">Questions are shuffled</p>
+      )}
     </div>
   );
 }
@@ -302,15 +380,37 @@ function ImageItemRenderer({ imageItem }: { imageItem: ImageItem }) {
   return <ImageRenderer image={imageItem.image} />;
 }
 
-function ImageRenderer({ image }: { image: ImageItem["image"] }) {
+function ImageRenderer({ image }: { image: Image }) {
   return (
     <div className="mb-4">
       <img
         src={
-          image.contentUri ?? image.sourceUri ?? "http://placehold.co/400/300"
+          image.contentUri ??
+          image.sourceUri ??
+          "/placeholder.svg?height=300&width=400"
         }
         alt={image.altText ?? "Form image"}
-        className="h-auto max-w-full"
+        className="h-auto max-w-full rounded"
+        style={{
+          width: image.properties?.width
+            ? `${image.properties.width}px`
+            : "auto",
+          display: "block",
+          marginLeft:
+            image.properties?.alignment === Alignment.CENTER
+              ? "auto"
+              : undefined,
+          marginRight:
+            image.properties?.alignment === Alignment.CENTER
+              ? "auto"
+              : undefined,
+          float:
+            image.properties?.alignment === Alignment.LEFT
+              ? "left"
+              : image.properties?.alignment === Alignment.RIGHT
+                ? "right"
+                : undefined,
+        }}
       />
       {image.altText && (
         <p className="mt-1 text-sm text-gray-500">{image.altText}</p>
@@ -330,9 +430,24 @@ function VideoItemRenderer({ videoItem }: { videoItem: VideoItem }) {
         frameBorder="0"
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
         allowFullScreen
+        className="rounded"
       ></iframe>
       {videoItem.caption && (
         <p className="mt-1 text-sm text-gray-500">{videoItem.caption}</p>
+      )}
+    </div>
+  );
+}
+
+function GradingRenderer({ grading }: { grading: Grading }) {
+  return (
+    <div className="mt-2 text-sm text-gray-600">
+      <p>Point value: {grading.pointValue}</p>
+      {grading.correctAnswers && (
+        <p>
+          Correct answers:{" "}
+          {grading.correctAnswers.answers.map((a) => a.value).join(", ")}
+        </p>
       )}
     </div>
   );
