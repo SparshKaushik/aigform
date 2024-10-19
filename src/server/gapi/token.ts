@@ -27,18 +27,15 @@ async function getToken(refreshToken: string) {
 
 export async function getUserToken(id: string) {
   const users = await db.select().from(accounts).where(eq(accounts.userId, id));
-  if (users.length === 0) return null;
+  if (users.length === 0) return await deleteUser(id);
   const user = users[0];
   if ((Number(`${user?.expires_at}000`) ?? 0) - 1000 * 60 * 2 > Date.now())
     return user?.access_token;
-  if (!user?.refresh_token) return null;
+  if (!user?.refresh_token) return await deleteUser(id);
+
   const token = await getToken(user?.refresh_token ?? "");
-  if (!token) {
-    await db.delete(accounts).where(eq(accounts.userId, id));
-    await db.delete(usersDB).where(eq(usersDB.id, id));
-    await signOut();
-    return null;
-  }
+  if (!token) return await deleteUser(id);
+
   await db
     .update(accounts)
     .set({
@@ -47,4 +44,11 @@ export async function getUserToken(id: string) {
     })
     .where(eq(accounts.userId, id));
   return token.access_token;
+}
+
+async function deleteUser(id: string) {
+  await db.delete(accounts).where(eq(accounts.userId, id));
+  await db.delete(usersDB).where(eq(usersDB.id, id));
+  await signOut();
+  return null;
 }

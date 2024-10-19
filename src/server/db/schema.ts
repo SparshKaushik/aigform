@@ -17,9 +17,7 @@ export const forms = pgTable(
   {
     id: text("id").primaryKey(),
     name: text("name"),
-    createdById: varchar("createdById", { length: 255 })
-      .notNull()
-      .references(() => users.id),
+    createdById: varchar("createdById", { length: 255 }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .default(sql`CURRENT_TIMESTAMP`)
       .notNull(),

@@ -1,4 +1,5 @@
 import { TrendingUpIcon } from "lucide-react";
+import { redirect } from "next/navigation";
 import { ResponsiveElement } from "~/components/Common";
 import { Badge } from "~/components/ui/badge";
 import {
@@ -11,6 +12,7 @@ import {
 import { Separator } from "~/components/ui/separator";
 
 export default function Dashboard() {
+  redirect("/dashboard/forms");
   return (
     <div className="flex-1 overflow-auto p-4">
       <Card className="space-y-2">

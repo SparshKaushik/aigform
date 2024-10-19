@@ -1,28 +1,14 @@
 import { eq, sql } from "drizzle-orm";
-import {
-  ALargeSmallIcon,
-  CopyIcon,
-  EllipsisVerticalIcon,
-  ImportIcon,
-  PlusIcon,
-  Trash2Icon,
-  UsersIcon,
-} from "lucide-react";
+import { ImportIcon, PlusIcon } from "lucide-react";
 import Link from "next/link";
 import { EmptyLottie } from "~/components/Lottie";
 import { CustomPagination } from "~/components/Pagination";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardFooter } from "~/components/ui/card";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "~/components/ui/dropdown-menu";
 import { auth } from "~/server/auth";
 import { db } from "~/server/db";
 import { forms } from "~/server/db/schema";
-import { ImportFormDialog } from "./components";
+import { FormDropdownMenu, ImportFormDialog } from "./components";
 import { getForms } from "~/server/gapi/form";
 
 export default async function Dashboard({
@@ -71,6 +57,7 @@ export default async function Dashboard({
                 Import Forms
               </Button>
             }
+            existingForms={frms.map((f) => f.id)}
           />
         </div>
       </div>
@@ -90,6 +77,7 @@ export default async function Dashboard({
                   Import Forms
                 </Button>
               }
+              existingForms={frms.map((f) => f.id)}
             />
           </div>
         </div>
@@ -108,29 +96,7 @@ export default async function Dashboard({
                   <span>
                     {!!frm.info.title ? frm.info.title : frm.info.documentTitle}
                   </span>
-                  <div className="flex items-center">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="size-8">
-                          <EllipsisVerticalIcon className="size-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent>
-                        <DropdownMenuItem>
-                          <ALargeSmallIcon className="mr-2 size-4" />
-                          Rename
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <CopyIcon className="mr-2 size-4" />
-                          Make a Copy
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <Trash2Icon className="mr-2 size-4" />
-                          Remove
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
+                  <FormDropdownMenu formId={frm.formId} />
                 </div>
               </CardContent>
               <CardFooter className="px-4">

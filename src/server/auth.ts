@@ -31,21 +31,5 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
       },
     }),
   ],
-  events: {
-    async createUser({ user }) {
-      if (!user.email || !user.id) return;
-      const olduser = (
-        await db.select().from(userids).where(eq(userids.email, user.email))
-      )[0];
-      if (olduser) {
-        await db
-          .update(users)
-          .set({ id: olduser.id })
-          .where(eq(users.email, user.email));
-        return;
-      }
-      await db.insert(userids).values({ id: user.id, email: user.email });
-    },
-  },
   trustHost: true,
 });

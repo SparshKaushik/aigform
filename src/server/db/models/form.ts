@@ -1,6 +1,6 @@
 "use server";
 
-import { eq, inArray } from "drizzle-orm";
+import { inArray } from "drizzle-orm";
 import { db } from "..";
 import { forms as formsDB } from "../schema";
 import { auth } from "~/server/auth";
@@ -37,9 +37,5 @@ export async function importForms(
 }
 
 export async function removeForms(forms: string[]) {
-  return Promise.all(
-    forms.map(async (form) => {
-      await db.delete(formsDB).where(eq(formsDB.id, form));
-    }),
-  );
+  return await db.delete(formsDB).where(inArray(formsDB.id, forms));
 }

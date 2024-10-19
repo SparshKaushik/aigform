@@ -2,7 +2,7 @@
 
 import {
   CircleArrowDownIcon,
-  CopyIcon,
+  EllipsisVerticalIcon,
   Link2Icon,
   Loader2Icon,
   Trash2Icon,
@@ -10,16 +10,39 @@ import {
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "~/components/ui/alert-dialog";
 import { Button, buttonVariants } from "~/components/ui/button";
 import { Checkbox } from "~/components/ui/checkbox";
 import { DialogClose, DialogFooter } from "~/components/ui/dialog";
 import { DrawerClose, DrawerFooter } from "~/components/ui/drawer";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "~/components/ui/dropdown-menu";
 import { ResponsiveDrawerDialog } from "~/components/ui/responsive-dialog";
 import { cn } from "~/lib/utils";
-import { importForms } from "~/server/db/models/form";
+import { importForms, removeForms } from "~/server/db/models/form";
 import { getFormsFromDrive } from "~/server/gapi/drive";
 
-export function ImportFormDialog({ trigger }: { trigger: React.ReactNode }) {
+export function ImportFormDialog({
+  trigger,
+  existingForms,
+}: {
+  trigger: React.ReactNode;
+  existingForms: string[];
+}) {
   const [forms, setForms] = useState<
     {
       id: string;
@@ -47,10 +70,12 @@ export function ImportFormDialog({ trigger }: { trigger: React.ReactNode }) {
                       setIsLoading(false);
                       return fls;
                     })
-                  ).files.map((form) => ({
-                    ...form,
-                    selected: true,
-                  })),
+                  ).files
+                    .filter((form) => !existingForms.includes(form.id))
+                    .map((form) => ({
+                      ...form,
+                      selected: true,
+                    })),
                 );
               }}
               variant={isLoading ? "ghost" : "default"}
@@ -127,11 +152,16 @@ export function ImportFormDialog({ trigger }: { trigger: React.ReactNode }) {
               }
               onClick={() => {
                 if (!forms) return;
-                toast.promise(importForms(forms?.filter((f) => f.selected)), {
-                  loading: "Importing Forms",
-                  success: "Forms Imported",
-                  error: "Error Importing Forms",
-                });
+                toast.promise(
+                  importForms(forms?.filter((f) => f.selected)).then(() =>
+                    window.location.reload(),
+                  ),
+                  {
+                    loading: "Importing Forms",
+                    success: "Forms Imported",
+                    error: "Error Importing Forms",
+                  },
+                );
                 setForms(undefined);
               }}
             >
@@ -152,5 +182,60 @@ export function ImportFormDialog({ trigger }: { trigger: React.ReactNode }) {
       dialogContent={<Content type="dialog" />}
       drawerContent={<Content type="drawer" />}
     />
+  );
+}
+
+export function FormDropdownMenu({ formId }: { formId: string }) {
+  return (
+    <div className="flex items-center" onClick={(e) => e.stopPropagation()}>
+      <AlertDialog>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="size-8">
+              <EllipsisVerticalIcon className="size-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <AlertDialogTrigger asChild>
+              <DropdownMenuItem>
+                <Trash2Icon className="mr-2 size-4" />
+                Remove
+              </DropdownMenuItem>
+            </AlertDialogTrigger>
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Are you sure you want to remove this form?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              This action does not delete the form from your Google account. It
+              only removes it from this app.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className={buttonVariants({
+                variant: "destructive",
+              })}
+              onClick={() => {
+                toast.promise(
+                  removeForms([formId]).then(() => window.location.reload()),
+                  {
+                    loading: "Removing Form",
+                    success: "Form Removed",
+                    error: "Error Removing Form",
+                  },
+                );
+              }}
+            >
+              Continue
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
   );
 }
