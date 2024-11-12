@@ -1,44 +1,24 @@
-import { eq, sql } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { ImportIcon, PlusIcon } from "lucide-react";
 import Link from "next/link";
 import { EmptyLottie } from "~/components/Lottie";
-import { CustomPagination } from "~/components/Pagination";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardFooter } from "~/components/ui/card";
 import { auth } from "~/server/auth";
 import { db } from "~/server/db";
 import { forms } from "~/server/db/schema";
-import { FormDropdownMenu, ImportFormDialog } from "./components";
+import { FormDropdownMenu } from "./components";
 import { getForms } from "~/server/gapi/form";
 
-export default async function Dashboard({
-  searchParams,
-}: {
-  searchParams: Record<string, string>;
-}) {
+export default async function Dashboard() {
   const user = (await auth())?.user;
   if (!user?.id) {
     return <div>You are not logged in</div>;
   }
-  // const page = parseInt(searchParams.page ?? "1");
-  // const limit = parseInt(searchParams.limit ?? "10");
-
-  // const total =
-  //   (
-  //     await db
-  //       .select({
-  //         count: sql`count(*)`.mapWith(Number),
-  //       })
-  //       .from(forms)
-  //       .where(eq(forms.createdById, user.id))
-  //   )[0]?.count ?? 0;
-
   const frms = await db
     .select()
     .from(forms)
     .where(eq(forms.createdById, user.id));
-  // .limit(limit)
-  // .offset((page - 1) * limit);
 
   const fullfrms = (await getForms(frms.map((f) => f.id))).filter((f) => f);
 
@@ -51,41 +31,17 @@ export default async function Dashboard({
             <PlusIcon className="size-4" />
             New Form
           </Button>
-          <ImportFormDialog
-            trigger={
-              <Button variant="outline" className="flex items-center gap-2">
-                <ImportIcon className="size-4" />
-                Import Forms
-              </Button>
-            }
-            existingForms={frms.map((f) => f.id)}
-          />
         </div>
       </div>
       {frms.length === 0 && (
         <div className="flex flex-col items-center justify-center gap-4 text-center">
           <EmptyLottie className="max-h-[40dvh]" />
           <h2 className="text-lg font-medium">No forms found</h2>
-          <div className="flex items-center gap-2">
-            <Button variant="default" className="flex items-center gap-2">
-              <PlusIcon className="size-4" />
-              New Form
-            </Button>
-            <ImportFormDialog
-              trigger={
-                <Button variant="outline" className="flex items-center gap-2">
-                  <ImportIcon className="size-4" />
-                  Import Forms
-                </Button>
-              }
-              existingForms={frms.map((f) => f.id)}
-            />
-          </div>
         </div>
       )}
       <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
         {fullfrms.map((frm) => (
-          <Link href={`/dashboard/forms/${frm.formId}`} key={frm.formId}>
+          <Link href={`/dashboard/responses/${frm.formId}`} key={frm.formId}>
             <Card>
               <img
                 className="max-h-[30dvh] w-full rounded-xl"

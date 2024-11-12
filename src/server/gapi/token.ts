@@ -49,6 +49,6 @@ export async function getUserToken(id: string) {
 async function deleteUser(id: string) {
   await db.delete(accounts).where(eq(accounts.userId, id));
   await db.delete(usersDB).where(eq(usersDB.id, id));
-  await signOut();
+  await signOut().catch(() => null);
   return null;
 }

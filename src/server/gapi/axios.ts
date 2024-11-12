@@ -9,6 +9,13 @@ const formsapi = axios.create({
   },
 });
 
+const formsadminapi = axios.create({
+  baseURL: "https://forms.googleapis.com/v2",
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+
 const driveapi = axios.create({
   baseURL: "https://www.googleapis.com/drive/v3/files",
   headers: {
@@ -20,7 +27,6 @@ async function addToken(config: InternalAxiosRequestConfig) {
   const user = (await auth())?.user?.id;
   if (!user) return config;
   const token = await getUserToken(user);
-  console.log(token);
   if (!token) return config;
   config.headers.Authorization = `Bearer ${token}`;
   return config;
@@ -32,6 +38,7 @@ driveapi.interceptors.request.use(addToken);
 
 const gapi = {
   formsapi,
+  formsadminapi,
   driveapi,
 };
 

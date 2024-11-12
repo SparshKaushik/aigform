@@ -75,9 +75,7 @@ export default function Header(props: { session: Session | null }) {
                 <div className="flex items-center gap-2" key={index}>
                   <BreadcrumbItem>
                     {index === list.length - 1 ? (
-                      <BreadcrumbPage>
-                        {routesNames[path] ?? "Not Found"}
-                      </BreadcrumbPage>
+                      <BreadcrumbPage>{routesNames[path] ?? ""}</BreadcrumbPage>
                     ) : (
                       <BreadcrumbLink asChild>
                         <Link
@@ -86,7 +84,7 @@ export default function Header(props: { session: Session | null }) {
                             .slice(1, index + 1)
                             .join("/")}`}
                         >
-                          {routesNames[path] ?? "Not Found"}
+                          {routesNames[path] ?? ""}
                         </Link>
                       </BreadcrumbLink>
                     )}

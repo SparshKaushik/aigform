@@ -33,7 +33,7 @@ export default function RootLayout({
         <Suspense
           fallback={
             <div className="flex h-full w-full items-center justify-center">
-              <Loader2Icon className="animate-spin" />
+              <Loader2Icon className="size-8 animate-spin" />
             </div>
           }
         >

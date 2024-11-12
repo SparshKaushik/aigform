@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2Icon } from "lucide-react";
+import { BotIcon, Loader2Icon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "~/components/ui/button";
@@ -13,7 +13,9 @@ import {
 } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
 import { ScrollArea } from "~/components/ui/scroll-area";
+import { Skeleton } from "~/components/ui/skeleton";
 import { generateForm } from "~/server/ai";
+import { updateFormChat } from "~/server/db/models/form";
 import {
   type Grading,
   type ChoiceQuestion,
@@ -34,22 +36,44 @@ import {
   type VideoItem,
   Alignment,
 } from "~/server/db/models/form.type";
+import { type formChatType } from "~/server/db/schema";
 import { updateForm } from "~/server/gapi/form";
 
-export function Form({ formm }: { formm: FormType }) {
+export function Form({
+  formm,
+  chatMessages,
+}: {
+  formm: FormType;
+  chatMessages: formChatType[];
+}) {
   const [messages, setMessages] = useState<
     {
-      role: "user" | "bot";
-      content: string | JSX.Element;
+      role: "user" | "assistant";
+      content: string;
     }[]
-  >([]);
+  >(
+    chatMessages.length
+      ? chatMessages.map((m) => ({
+          role: m.role as "user" | "assistant",
+          content: m.message,
+        }))
+      : [
+          {
+            role: "assistant",
+            content:
+              "Hi, I'm your AI Google Form assistant. How can I help you?",
+          },
+        ],
+  );
+
+  const [state, setState] = useState<"loading" | "idle">("idle");
 
   const [messageInput, setMessageInput] = useState("");
 
   const [form, setForm] = useState<FormType>(formm);
 
   return (
-    <div className="flex h-full flex-col items-center gap-4 px-4">
+    <div className="flex h-full flex-col items-center gap-4 overflow-auto px-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">
           {!!form.info.title ? form.info.title : form.info.documentTitle}
@@ -57,9 +81,26 @@ export function Form({ formm }: { formm: FormType }) {
       </div>
       <div className="grid h-full w-full grid-cols-2">
         <div className="flex flex-col gap-4 px-4">
-          {form.items?.map((item, index) => (
-            <ItemRenderer key={index} item={item} />
-          ))}
+          {state === "loading" ? (
+            <>
+              <div className="mb-4 flex flex-col gap-4 rounded-lg border p-4 shadow-sm">
+                <Skeleton className="h-8 w-1/3" />
+                <Skeleton className="h-10 w-1/3" />
+              </div>
+              <div className="mb-4 flex flex-col gap-4 rounded-lg border p-4 shadow-sm">
+                <Skeleton className="h-8 w-1/3" />
+                <Skeleton className="h-10 w-1/3" />
+              </div>
+              <div className="mb-4 flex flex-col gap-4 rounded-lg border p-4 shadow-sm">
+                <Skeleton className="h-8 w-1/3" />
+                <Skeleton className="h-10 w-1/3" />
+              </div>
+            </>
+          ) : (
+            form.items?.map((item, index) => (
+              <ItemRenderer key={index} item={item} />
+            ))
+          )}
         </div>
         <Card className="flex h-full flex-col">
           <CardHeader>
@@ -70,8 +111,9 @@ export function Form({ formm }: { formm: FormType }) {
               {messages.map((message, index) => (
                 <div
                   key={index}
-                  className={`mb-4 ${message.role === "user" ? "text-right" : "text-left"}`}
+                  className={`mb-4 ${message.role === "user" ? "text-right" : "text-left"} flex items-center gap-2`}
                 >
+                  <BotIcon className="h-5 w-5" />
                   <div
                     className={`inline-block rounded-lg p-2 ${message.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted"}`}
                   >
@@ -79,6 +121,11 @@ export function Form({ formm }: { formm: FormType }) {
                   </div>
                 </div>
               ))}
+              {state === "loading" && (
+                <div className={`mb-4 text-left`}>
+                  <Skeleton className="h-10 w-1/3" />
+                </div>
+              )}
             </ScrollArea>
           </CardContent>
           <CardFooter>
@@ -98,29 +145,43 @@ export function Form({ formm }: { formm: FormType }) {
                     ...messages,
                     { role: "user", content: messageInput },
                   ]);
+                  void updateFormChat({
+                    formId: form.formId,
+                    role: "user",
+                    message: messageInput,
+                  });
                   setMessageInput("");
-                  setMessages((messages) => [
-                    ...messages,
-                    {
-                      role: "bot",
-                      content: <Loader2Icon className="size-5 animate-spin" />,
-                    },
-                  ]);
-                  const res = await generateForm(prompt);
-                  console.log(res);
+                  setState("loading");
+                  const res = await generateForm(
+                    prompt,
+                    messages.filter((m) => typeof m.content === "string") as {
+                      role: "user" | "assistant";
+                      content: string;
+                    }[],
+                  );
                   setMessages((messages) => [
                     ...messages.slice(0, -1),
                     {
-                      role: "bot",
+                      role: "assistant",
                       content: res.message,
                     },
                   ]);
+                  await updateFormChat({
+                    formId: form.formId,
+                    role: "assistant",
+                    message: res.message,
+                  });
                   if (res.request) {
                     const update = await updateForm(res.request, form.formId);
                     if (update.form) setForm(update.form);
                     else toast.error(update.error);
                   }
+                  setState("idle");
                 }}
+                disabled={
+                  messages.filter((m) => typeof m.content === "string")
+                    .length === 1
+                }
               >
                 Send
               </Button>
@@ -147,7 +208,7 @@ function ItemRenderer({ item }: { item: Item }) {
         <h2 className="mb-2 text-xl font-semibold">{item.title}</h2>
       )}
       {item.description && (
-        <p className="mb-4 text-gray-600">{item.description}</p>
+        <p className="mb-2 text-gray-600">{item.description}</p>
       )}
       {item.questionItem && (
         <QuestionItemRenderer questionItem={item.questionItem} />
@@ -170,41 +231,45 @@ function QuestionItemRenderer({
 }) {
   return (
     <div className="mb-6">
-      <QuestionRenderer question={questionItem.question} />
       {questionItem.image && <ImageRenderer image={questionItem.image} />}
+      <QuestionRenderer question={questionItem.question} />
     </div>
   );
 }
 
 function QuestionRenderer({ question }: { question: Question }) {
   return (
-    <div className="mb-4">
-      {question.required && <span className="ml-1 text-red-500">*</span>}
-      {question.grading && <GradingRenderer grading={question.grading} />}
-      {question.choiceQuestion && (
-        <ChoiceQuestionRenderer choiceQuestion={question.choiceQuestion} />
+    <>
+      {question.required && (
+        <span className="mb-2 text-red-500">Required *</span>
       )}
-      {question.textQuestion && (
-        <TextQuestionRenderer textQuestion={question.textQuestion} />
-      )}
-      {question.scaleQuestion && (
-        <ScaleQuestionRenderer scaleQuestion={question.scaleQuestion} />
-      )}
-      {question.dateQuestion && (
-        <DateQuestionRenderer dateQuestion={question.dateQuestion} />
-      )}
-      {question.timeQuestion && (
-        <TimeQuestionRenderer timeQuestion={question.timeQuestion} />
-      )}
-      {question.fileUploadQuestion && (
-        <FileUploadQuestionRenderer
-          fileUploadQuestion={question.fileUploadQuestion}
-        />
-      )}
-      {question.rowQuestion && (
-        <RowQuestionRenderer rowQuestion={question.rowQuestion} />
-      )}
-    </div>
+      <div className="mb-4">
+        {question.grading && <GradingRenderer grading={question.grading} />}
+        {question.choiceQuestion && (
+          <ChoiceQuestionRenderer choiceQuestion={question.choiceQuestion} />
+        )}
+        {question.textQuestion && (
+          <TextQuestionRenderer textQuestion={question.textQuestion} />
+        )}
+        {question.scaleQuestion && (
+          <ScaleQuestionRenderer scaleQuestion={question.scaleQuestion} />
+        )}
+        {question.dateQuestion && (
+          <DateQuestionRenderer dateQuestion={question.dateQuestion} />
+        )}
+        {question.timeQuestion && (
+          <TimeQuestionRenderer timeQuestion={question.timeQuestion} />
+        )}
+        {question.fileUploadQuestion && (
+          <FileUploadQuestionRenderer
+            fileUploadQuestion={question.fileUploadQuestion}
+          />
+        )}
+        {question.rowQuestion && (
+          <RowQuestionRenderer rowQuestion={question.rowQuestion} />
+        )}
+      </div>
+    </>
   );
 }
 

@@ -17,6 +17,7 @@ export const forms = pgTable(
   {
     id: text("id").primaryKey(),
     name: text("name"),
+    previewImage: text("previewImage").default("https://placehold.co/200x150"),
     createdById: varchar("createdById", { length: 255 }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .default(sql`CURRENT_TIMESTAMP`)
@@ -29,6 +30,27 @@ export const forms = pgTable(
     createdByIdIdx: index("createdById_idx").on(example.createdById),
   }),
 );
+
+export const aiRole = pgEnum("aiRole", ["user", "assistant"])
+
+export const formChat = pgTable(
+  "formChat",
+  {
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+    formId: text("formId").notNull().references(() => forms.id),
+    role: text("roles").notNull(),
+    message: text("message").notNull(),
+    createdAt: timestamp("createdAt", { withTimezone: true })
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
+  },
+  (example) => ({
+    formIdIdx: index("formId_idx").on(example.formId),
+  }),
+);
+
+export type formChatType = typeof formChat.$inferSelect
+export type formChatTypeInsert = typeof formChat.$inferInsert
 
 export const gaccessTypeEnum = pgEnum("gaccessType", ["basic", "full"]);
 
@@ -108,9 +130,4 @@ export const authenticators = pgTable(
     credentialBackedUp: boolean("credentialBackedUp").notNull(),
     transports: text("transports"),
   },
-  (authenticator) => ({
-    compositePK: primaryKey({
-      columns: [authenticator.userId, authenticator.credentialID],
-    }),
-  }),
 );

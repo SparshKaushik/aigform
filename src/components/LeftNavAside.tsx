@@ -11,6 +11,7 @@ import { navRoutes } from "~/lib/constants";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { BotIcon } from "lucide-react";
 
 export default function LeftNavAside() {
   const pathname = usePathname();
@@ -38,6 +39,7 @@ export default function LeftNavAside() {
                 alt="AI Google Form"
                 className="size-8 object-contain"
               /> */}
+              <BotIcon className="size-5" />
               <span className="sr-only opacity-0 delay-300 duration-300 hover:delay-0 group-hover:not-sr-only group-hover:opacity-100">
                 AI Google Form
               </span>

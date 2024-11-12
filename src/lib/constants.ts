@@ -1,6 +1,7 @@
 import {
   BarChart2Icon,
   LayoutPanelLeftIcon,
+  MessageCircleIcon,
   NotebookTextIcon,
   SettingsIcon,
 } from "lucide-react";
@@ -26,6 +27,11 @@ export const navRoutes = [
     title: "Forms",
     route: "/dashboard/forms",
     icon: NotebookTextIcon,
+  },
+  {
+    title: "Responses",
+    route: "/dashboard/responses",
+    icon: MessageCircleIcon,
   },
   // {
   //   title: "Settings",

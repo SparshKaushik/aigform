@@ -5,11 +5,9 @@ import { db } from "./db";
 import {
   accounts,
   sessions,
-  userids,
   users,
   verificationTokens,
 } from "./db/schema";
-import { eq } from "drizzle-orm";
 
 export const { auth, handlers, signIn, signOut } = NextAuth({
   adapter: DrizzleAdapter(db, {

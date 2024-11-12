@@ -2,7 +2,7 @@
 
 import { inArray } from "drizzle-orm";
 import { db } from "..";
-import { forms as formsDB } from "../schema";
+import { formChat, type formChatType, formChatTypeInsert, forms as formsDB } from "../schema";
 import { auth } from "~/server/auth";
 
 export async function importForms(
@@ -38,4 +38,8 @@ export async function importForms(
 
 export async function removeForms(forms: string[]) {
   return await db.delete(formsDB).where(inArray(formsDB.id, forms));
+}
+
+export async function updateFormChat(message: formChatTypeInsert) {
+  await db.insert(formChat).values(message);
 }
