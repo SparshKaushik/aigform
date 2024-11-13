@@ -8,7 +8,7 @@ import { Card, CardContent, CardFooter } from "~/components/ui/card";
 import { auth } from "~/server/auth";
 import { db } from "~/server/db";
 import { forms } from "~/server/db/schema";
-import { FormDropdownMenu, ImportFormDialog } from "./components";
+import { CreateFormButton, FormDropdownMenu, ImportFormDialog } from "./components";
 import { getForms } from "~/server/gapi/form";
 
 export default async function Dashboard({
@@ -47,10 +47,7 @@ export default async function Dashboard({
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Forms</h1>
         <div className="flex items-center gap-2">
-          <Button variant="default" className="flex items-center gap-2">
-            <PlusIcon className="size-4" />
-            New Form
-          </Button>
+          <CreateFormButton />
           <ImportFormDialog
             trigger={
               <Button variant="outline" className="flex items-center gap-2">
@@ -67,10 +64,7 @@ export default async function Dashboard({
           <EmptyLottie className="max-h-[40dvh]" />
           <h2 className="text-lg font-medium">No forms found</h2>
           <div className="flex items-center gap-2">
-            <Button variant="default" className="flex items-center gap-2">
-              <PlusIcon className="size-4" />
-              New Form
-            </Button>
+            <CreateFormButton />
             <ImportFormDialog
               trigger={
                 <Button variant="outline" className="flex items-center gap-2">

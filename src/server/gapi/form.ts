@@ -20,6 +20,17 @@ export async function getForms(formIds: string[]) {
   );
 }
 
+export async function createForm() {
+  return (
+    await gapi.formsapi.post("/forms", {
+      info: {
+        title: "Untitled Document",
+      },
+    })
+  ).data as Form;
+}
+
+
 export async function updateForm(
   request: BatchUpdateFormRequest,
   formId: string,

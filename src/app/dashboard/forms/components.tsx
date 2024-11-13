@@ -35,6 +35,7 @@ import { ResponsiveDrawerDialog } from "~/components/ui/responsive-dialog";
 import { cn } from "~/lib/utils";
 import { importForms, removeForms } from "~/server/db/models/form";
 import { getFormsFromDrive } from "~/server/gapi/drive";
+import { createForm } from "~/server/gapi/form";
 
 export function ImportFormDialog({
   trigger,
@@ -237,5 +238,24 @@ export function FormDropdownMenu({ formId }: { formId: string }) {
         </AlertDialogContent>
       </AlertDialog>
     </div>
+  );
+}
+
+export function CreateFormButton() {
+  return (
+    <Button
+      onClick={() => {
+        toast.promise(
+          createForm().then((f) => (window.location.href = `/dashboard/forms/${f.formId}`)),
+          {
+            loading: "Creating Form",
+            success: "Form Created",
+            error: "Error Creating Form",
+          },
+        );
+      }}
+    >
+      Create Form
+    </Button>
   );
 }

@@ -25,13 +25,7 @@ export default async function Dashboard() {
   return (
     <div className="flex flex-1 flex-col gap-6 overflow-auto px-4 py-2 md:px-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Forms</h1>
-        <div className="flex items-center gap-2">
-          <Button variant="default" className="flex items-center gap-2">
-            <PlusIcon className="size-4" />
-            New Form
-          </Button>
-        </div>
+        <h1 className="text-2xl font-bold">Forms Responses</h1>
       </div>
       {frms.length === 0 && (
         <div className="flex flex-col items-center justify-center gap-4 text-center">

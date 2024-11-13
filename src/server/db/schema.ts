@@ -31,7 +31,31 @@ export const forms = pgTable(
   }),
 );
 
-export const aiRole = pgEnum("aiRole", ["user", "assistant"])
+export const formURLShort = pgTable("formURLShort", {
+  id: text("id").primaryKey(),
+  formId: text("formId").notNull().references(() => forms.id),
+  shortURL: text("shortURL").notNull().unique(),
+  responderURI: text("responderURI").notNull(),
+  updatedAt: timestamp("updatedAt", { withTimezone: true }),
+  createdAt: timestamp("createdAt", { withTimezone: true })
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+});
+
+export type formURLShortType = typeof formURLShort.$inferSelect;
+export type formURLShortTypeInsert = typeof formURLShort.$inferInsert;
+
+export const formURLShortClicks = pgTable("formURLShortClicks", {
+  id: text("id").primaryKey(),
+  formURLShortId: text("formURLShortId").notNull().references(() => formURLShort.id),
+  source: text("source").notNull(),
+  clickedAt: timestamp("clickedAt", { withTimezone: true }).notNull(),
+});
+
+export type formURLShortClicksType = typeof formURLShortClicks.$inferSelect;
+export type formURLShortClicksTypeInsert = typeof formURLShortClicks.$inferInsert;
+
+export const aiRole = pgEnum("aiRole", ["user", "assistant"]);
 
 export const formChat = pgTable(
   "formChat",

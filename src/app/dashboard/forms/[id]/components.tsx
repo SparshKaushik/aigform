@@ -1,8 +1,10 @@
 "use client";
 
-import { BotIcon, Loader2Icon } from "lucide-react";
+import { BotIcon, CopyIcon, LinkIcon, Loader2Icon, PlusIcon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "~/components/ui/accordion";
+import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import {
   Card,
@@ -11,6 +13,7 @@ import {
   CardHeader,
   CardTitle,
 } from "~/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "~/components/ui/dialog";
 import { Input } from "~/components/ui/input";
 import { ScrollArea } from "~/components/ui/scroll-area";
 import { Skeleton } from "~/components/ui/skeleton";
@@ -36,15 +39,20 @@ import {
   type VideoItem,
   Alignment,
 } from "~/server/db/models/form.type";
-import { type formChatType } from "~/server/db/schema";
+import { createShortURL } from "~/server/db/models/shorturls";
+import { formURLShortClicksType, formURLShortType, type formChatType } from "~/server/db/schema";
 import { updateForm } from "~/server/gapi/form";
 
 export function Form({
   formm,
   chatMessages,
+  shortURLs,
+  clicks,
 }: {
   formm: FormType;
   chatMessages: formChatType[];
+  shortURLs: formURLShortType[];
+  clicks: formURLShortClicksType[];
 }) {
   const [messages, setMessages] = useState<
     {
@@ -54,16 +62,16 @@ export function Form({
   >(
     chatMessages.length
       ? chatMessages.map((m) => ({
-          role: m.role as "user" | "assistant",
-          content: m.message,
-        }))
+        role: m.role as "user" | "assistant",
+        content: m.message,
+      }))
       : [
-          {
-            role: "assistant",
-            content:
-              "Hi, I'm your AI Google Form assistant. How can I help you?",
-          },
-        ],
+        {
+          role: "assistant",
+          content:
+            "Hi, I'm your AI Google Form assistant. How can I help you?",
+        },
+      ],
   );
 
   const [state, setState] = useState<"loading" | "idle">("idle");
@@ -74,10 +82,11 @@ export function Form({
 
   return (
     <div className="flex h-full flex-col items-center gap-4 overflow-auto px-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between w-full px-4">
         <h1 className="text-2xl font-bold">
           {!!form.info.title ? form.info.title : form.info.documentTitle}
         </h1>
+        <ShortURLDialog form={form} shortURLs={shortURLs} clicks={clicks} />
       </div>
       <div className="grid h-full w-full grid-cols-2">
         <div className="flex flex-col gap-4 px-4">
@@ -515,5 +524,91 @@ function GradingRenderer({ grading }: { grading: Grading }) {
         </p>
       )}
     </div>
+  );
+}
+
+function ShortURLDialog({ form, shortURLs, clicks }: { form: FormType, shortURLs: formURLShortType[], clicks: formURLShortClicksType[] }) {
+  const [customURL, setCustomURL] = useState("");
+
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button variant="outline" size="sm">
+          <LinkIcon className="mr-2 h-4 w-4" />
+          Manage Short URLs
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>Short URLs</DialogTitle>
+
+          <DialogDescription>
+            Manage and track shortened URLs for this form
+          </DialogDescription>
+        </DialogHeader>
+        <div className="flex items-center gap-2">
+          <Input
+            placeholder="Custom short URL (optional)"
+            onChange={(e) => setCustomURL(e.target.value)}
+            value={customURL}
+          />
+          <Button
+            size="sm"
+            onClick={() => {
+              if (!form.responderUri) {
+                toast.error("Form does not have a responder URI");
+                return;
+              }
+              void createShortURL({
+                formId: form.formId,
+                shortURL: customURL,
+                responderURI: form.responderUri
+              });
+              setCustomURL("");
+            }}
+          >
+            <PlusIcon className="mr-2 h-4 w-4" />
+            Create New URL
+          </Button>
+        </div>
+
+        <Accordion type="single" collapsible className="w-full">
+          {shortURLs.map((url) => (
+            <AccordionItem key={url.id} value={url.id}>
+              <AccordionTrigger className="text-sm">
+                <div className="flex items-center gap-4">
+                  <span>{url.shortURL}</span>
+                  <Badge variant="secondary">
+                    {clicks.filter((c) => c.formURLShortId === url.id).length} clicks
+                  </Badge>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <Input
+                      readOnly
+                      value={`${window.location.origin}/f/${url.shortURL}`}
+                    />
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        void navigator.clipboard.writeText(
+                          `${window.location.origin}/f/${url.shortURL}`
+                        );
+                        toast.success("Copied to clipboard!");
+                      }}
+                    >
+                      <CopyIcon className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          ))}
+        </Accordion>
+      </DialogContent>
+    </Dialog>
   );
 }
