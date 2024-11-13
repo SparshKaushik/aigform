@@ -33,34 +33,24 @@ export default async function Dashboard() {
           <h2 className="text-lg font-medium">No forms found</h2>
         </div>
       )}
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
+      <div className="flex flex-col gap-4">
         {fullfrms.map((frm) => (
           <Link href={`/dashboard/responses/${frm.formId}`} key={frm.formId}>
             <Card>
-              <img
-                className="max-h-[30dvh] w-full rounded-xl"
-                src={
-                  frms.find((f) => f.id === frm.formId)?.previewImage ??
-                  "https://placehold.co/200x150"
-                }
-                alt=""
-              />
-              <CardContent className="p-4 pb-2">
+              <CardContent className="p-4">
                 <div className="flex items-center justify-between">
-                  <span className="truncate">
+                  <span className="text-lg">
                     {!!frm.info.title ? frm.info.title : frm.info.documentTitle}
                   </span>
                   <FormDropdownMenu formId={frm.formId} />
                 </div>
-              </CardContent>
-              <CardFooter className="px-4">
-                <span className="text-xs text-muted-foreground">
+                <span className="text-sm text-muted-foreground">
                   Last Edited -{" "}
                   {frms
                     .find((f) => f.id === frm.formId)
                     ?.updatedAt?.toLocaleString() ?? "Never"}
                 </span>
-              </CardFooter>
+              </CardContent>
             </Card>
           </Link>
         ))}
