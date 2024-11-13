@@ -1,6 +1,6 @@
 "use client";
 
-import { BotIcon, CopyIcon, LinkIcon, Loader2Icon, PlusIcon } from "lucide-react";
+import { BotIcon, CopyIcon, LinkIcon, Loader2Icon, PlusIcon, UserIcon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "~/components/ui/accordion";
@@ -71,6 +71,22 @@ export function Form({
           content:
             "Hi, I'm your AI Google Form assistant. How can I help you?",
         },
+        {
+          role: "user",
+          content: "Create a form to collect name, email id., enrollment number of students and their course which can be AIML, AIDS or IIOT",
+        },
+        {
+          role: "assistant",
+          content: "Ok I'have created a form to collect student information, including name, email id., enrollment number of students and their course which can be AIML, AIDS or IIOT",
+        },
+        {
+          role: "user",
+          content: "edit the form to collect section name of student which can be A or B",
+        },
+        {
+          role: "assistant",
+          content: "Ok I have edited the form to collect section name of student which can be A or B",
+        }
       ],
   );
 
@@ -120,9 +136,11 @@ export function Form({
               {messages.map((message, index) => (
                 <div
                   key={index}
-                  className={`mb-4 ${message.role === "user" ? "text-right" : "text-left"} flex items-center gap-2`}
+                  className={`mb-4 ${message.role === "user" ? "justify-end" : "justify-start"} flex items-center gap-2`}
                 >
-                  <BotIcon className="h-5 w-5" />
+                  {
+                    message.role === "assistant" && <BotIcon className="size-5" />
+                  }
                   <div
                     className={`inline-block rounded-lg p-2 ${message.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted"}`}
                   >
@@ -457,6 +475,7 @@ function ImageItemRenderer({ imageItem }: { imageItem: ImageItem }) {
 function ImageRenderer({ image }: { image: Image }) {
   return (
     <div className="mb-4">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={
           image.contentUri ??

@@ -10,6 +10,7 @@ export const routesNames: Record<string, string> = {
   dashboard: "Dashboard",
   forms: "Forms",
   settings: "Settings",
+  responses: "Responses",
 };
 
 export const navRoutes = [

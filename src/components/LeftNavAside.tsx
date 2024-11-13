@@ -62,7 +62,6 @@ export default function LeftNavAside() {
                         "relative flex w-full items-center gap-3 rounded-lg p-3 text-muted-foreground transition-all hover:bg-accent hover:text-accent-foreground",
                         pathname === route.route &&
                           "bg-accent text-accent-foreground",
-                        route.end && "mt-auto",
                       )}
                     >
                       <route.icon className="size-5" />

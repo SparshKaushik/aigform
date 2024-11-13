@@ -2,7 +2,13 @@
 
 import { BotIcon, Loader2, SendIcon, UserIcon } from "lucide-react";
 import { useState } from "react";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "~/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
 import { ScrollArea } from "~/components/ui/scroll-area";
@@ -14,9 +20,21 @@ import { generateFormAnalysis } from "~/server/ai";
 import { marked } from "marked";
 import { Skeleton } from "~/components/ui/skeleton";
 
-export function Form({ responses, form }: { responses: FormResponse[]; form: Form }) {
-  const [messages, setMessages] = useState<{ role: "user" | "assistant"; content: string; }[]>([
-    { role: "assistant", content: "Hi, I'm your AI assistant. How can I help you analyze these responses?" }
+export function Form({
+  responses,
+  form,
+}: {
+  responses: FormResponse[];
+  form: Form;
+}) {
+  const [messages, setMessages] = useState<
+    { role: "user" | "assistant"; content: string }[]
+  >([
+    {
+      role: "assistant",
+      content:
+        "Hi, I'm your AI assistant. How can I help you analyze these responses?",
+    },
   ]);
   const [messageInput, setMessageInput] = useState("");
 
@@ -24,12 +42,19 @@ export function Form({ responses, form }: { responses: FormResponse[]; form: For
 
   return (
     <div className="flex h-full flex-col items-center gap-2 overflow-auto px-6 py-2">
-      <h1 className="text-2xl font-bold mb-6">{form.info.title ?? form.info.documentTitle}</h1>
+      <h1 className="mb-6 text-2xl font-bold">
+        {form.info.title ?? form.info.documentTitle}
+      </h1>
       <div className="grid h-full w-full gap-6 lg:grid-cols-2">
         {/* Left side - Responses */}
         <Card className="overflow-hidden">
           <CardHeader>
-            <CardTitle>Responses</CardTitle>
+            <CardTitle>
+              Responses
+              <Badge variant="outline" className="ml-2">
+                {responses.length}
+              </Badge>
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <ScrollArea className="h-[calc(100vh-16rem)]">
@@ -38,10 +63,14 @@ export function Form({ responses, form }: { responses: FormResponse[]; form: For
                   <CardHeader className="pb-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-2">
-                          <p className="font-medium">{response.respondentEmail}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {new Date(response.lastSubmittedTime).toLocaleString()}
-                          </p>
+                        <p className="font-medium">
+                          {response.respondentEmail}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {new Date(
+                            response.lastSubmittedTime,
+                          ).toLocaleString()}
+                        </p>
                       </div>
                       {response.totalScore !== undefined && (
                         <Badge variant="secondary" className="text-lg">
@@ -55,25 +84,47 @@ export function Form({ responses, form }: { responses: FormResponse[]; form: For
                       {Object.values(response.answers ?? {}).map((answer) => (
                         <div key={answer.questionId} className="border-t pt-2">
                           <p className="font-medium">
-                            {form.items?.find((item) => item.questionItem?.question.questionId === answer.questionId)?.title}
+                            {
+                              form.items?.find(
+                                (item) =>
+                                  item.questionItem?.question.questionId ===
+                                  answer.questionId,
+                              )?.title
+                            }
                           </p>
                           {answer.textAnswers?.answers?.map((textAnswer, i) => (
-                            <p key={i} className="text-sm text-muted-foreground mt-1">
+                            <p
+                              key={i}
+                              className="mt-1 text-sm text-muted-foreground"
+                            >
                               {textAnswer.value}
                             </p>
                           ))}
-                          {answer.fileUploadAnswers?.answers?.map((fileAnswer, i) => (
-                            <p key={i} className="text-sm text-blue-600 hover:underline mt-1">
-                              <a href={fileAnswer.fileId} target="_blank" rel="noopener noreferrer">
-                                📎 {fileAnswer.fileName}
-                              </a>
-                            </p>
-                          ))}
+                          {answer.fileUploadAnswers?.answers?.map(
+                            (fileAnswer, i) => (
+                              <p
+                                key={i}
+                                className="mt-1 text-sm text-blue-600 hover:underline"
+                              >
+                                <a
+                                  href={fileAnswer.fileId}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                >
+                                  📎 {fileAnswer.fileName}
+                                </a>
+                              </p>
+                            ),
+                          )}
                           {answer.grade && (
-                            <div className="mt-2 p-2 bg-muted rounded-md">
-                              <p className="text-sm font-medium">Score: {answer.grade.score}</p>
+                            <div className="mt-2 rounded-md bg-muted p-2">
+                              <p className="text-sm font-medium">
+                                Score: {answer.grade.score}
+                              </p>
                               {answer.grade.feedback && (
-                                <p className="text-sm text-muted-foreground mt-1">Feedback: {answer.grade.feedback.text}</p>
+                                <p className="mt-1 text-sm text-muted-foreground">
+                                  Feedback: {answer.grade.feedback.text}
+                                </p>
                               )}
                             </div>
                           )}
@@ -109,10 +160,16 @@ export function Form({ responses, form }: { responses: FormResponse[]; form: For
                   )}
                   <div
                     className={`rounded-lg p-3 ${
-                      message.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted"
+                      message.role === "user"
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted"
                     }`}
                   >
-                    <div dangerouslySetInnerHTML={{ __html: marked(message.content) }} />
+                    <div
+                      dangerouslySetInnerHTML={{
+                        __html: marked(message.content),
+                      }}
+                    />
                   </div>
                   {message.role === "user" && (
                     <Avatar>
@@ -133,16 +190,22 @@ export function Form({ responses, form }: { responses: FormResponse[]; form: For
           </CardContent>
           <CardFooter>
             <form
-              onSubmit={(e) => {
-                e.preventDefault()
-                setMessages((prev) => [...prev, { role: "user", content: messageInput }]);
+              onSubmit={async (e) => {
+                e.preventDefault();
+                setMessages((prev) => [
+                  ...prev,
+                  { role: "user", content: messageInput },
+                ]);
                 setMessageInput("");
                 setState("loading");
-                generateFormAnalysis(`
+                await generateFormAnalysis(`
                   Full Form info: ${JSON.stringify(form)}
                   Responses: ${JSON.stringify(responses)}
                   ${messageInput}`).then((res) => {
-                  setMessages((prev) => [...prev, { role: "assistant", content: res }]);
+                  setMessages((prev) => [
+                    ...prev,
+                    { role: "assistant", content: res },
+                  ]);
                   setState("idle");
                 });
               }}
@@ -154,7 +217,11 @@ export function Form({ responses, form }: { responses: FormResponse[]; form: For
                 onChange={(e) => setMessageInput(e.target.value)}
               />
               <Button type="submit" disabled={state === "loading"}>
-                {state === "loading" ? <Loader2 className="h-4 w-4 animate-spin" /> : <SendIcon className="h-4 w-4" />}
+                {state === "loading" ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <SendIcon className="h-4 w-4" />
+                )}
                 <span className="sr-only">Send</span>
               </Button>
             </form>

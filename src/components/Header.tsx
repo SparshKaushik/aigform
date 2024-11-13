@@ -121,10 +121,6 @@ export default function Header(props: { session: Session | null }) {
             {props.session?.user?.name ?? ""}
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <Link href="/settings">
-            <DropdownMenuItem>Settings</DropdownMenuItem>
-          </Link>
-          <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => signOut()}>Logout</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
