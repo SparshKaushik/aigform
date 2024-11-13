@@ -117,7 +117,7 @@ export default function Header(props: { session: Session | null }) {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="min-w-40" align="end">
-          <DropdownMenuLabel>
+        <DropdownMenuLabel>
             {props.session?.user?.name ?? ""}
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
