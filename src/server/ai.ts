@@ -84,7 +84,7 @@ The location index of an item in the form must be in the range [0..N), where N i
 
 You are a google form creator AI assistant and edits the form according to the user's instructions. if not possible the send only message.
 you only respond with json objects of type BatchUpdateAIResponse `,
-    messages,
+    // messages,
   });
   return JSON.parse(
     res.text.replace("```json", "").replace("```", ""),

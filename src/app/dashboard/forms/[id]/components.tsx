@@ -1,9 +1,21 @@
 "use client";
 
-import { BotIcon, CopyIcon, LinkIcon, Loader2Icon, PlusIcon, UserIcon } from "lucide-react";
+import {
+  BotIcon,
+  CopyIcon,
+  LinkIcon,
+  Loader2Icon,
+  PlusIcon,
+  UserIcon,
+} from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "~/components/ui/accordion";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "~/components/ui/accordion";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import {
@@ -13,7 +25,14 @@ import {
   CardHeader,
   CardTitle,
 } from "~/components/ui/card";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "~/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "~/components/ui/dialog";
 import { Input } from "~/components/ui/input";
 import { ScrollArea } from "~/components/ui/scroll-area";
 import { Skeleton } from "~/components/ui/skeleton";
@@ -40,7 +59,11 @@ import {
   Alignment,
 } from "~/server/db/models/form.type";
 import { createShortURL } from "~/server/db/models/shorturls";
-import { formURLShortClicksType, formURLShortType, type formChatType } from "~/server/db/schema";
+import {
+  formURLShortClicksType,
+  formURLShortType,
+  type formChatType,
+} from "~/server/db/schema";
 import { updateForm } from "~/server/gapi/form";
 
 export function Form({
@@ -59,36 +82,12 @@ export function Form({
       role: "user" | "assistant";
       content: string;
     }[]
-  >(
-    chatMessages.length
-      ? chatMessages.map((m) => ({
-        role: m.role as "user" | "assistant",
-        content: m.message,
-      }))
-      : [
-        {
-          role: "assistant",
-          content:
-            "Hi, I'm your AI Google Form assistant. How can I help you?",
-        },
-        {
-          role: "user",
-          content: "Create a form to collect name, email id., enrollment number of students and their course which can be AIML, AIDS or IIOT",
-        },
-        {
-          role: "assistant",
-          content: "Ok I'have created a form to collect student information, including name, email id., enrollment number of students and their course which can be AIML, AIDS or IIOT",
-        },
-        {
-          role: "user",
-          content: "edit the form to collect section name of student which can be A or B",
-        },
-        {
-          role: "assistant",
-          content: "Ok I have edited the form to collect section name of student which can be A or B",
-        }
-      ],
-  );
+  >([
+    {
+      role: "assistant",
+      content: "Hi, I'm your AI Google Form assistant. How can I help you?",
+    },
+  ]);
 
   const [state, setState] = useState<"loading" | "idle">("idle");
 
@@ -98,7 +97,7 @@ export function Form({
 
   return (
     <div className="flex h-full flex-col items-center gap-4 overflow-auto px-4">
-      <div className="flex items-center justify-between w-full px-4">
+      <div className="flex w-full items-center justify-between px-4">
         <h1 className="text-2xl font-bold">
           {!!form.info.title ? form.info.title : form.info.documentTitle}
         </h1>
@@ -138,9 +137,9 @@ export function Form({
                   key={index}
                   className={`mb-4 ${message.role === "user" ? "justify-end" : "justify-start"} flex items-center gap-2`}
                 >
-                  {
-                    message.role === "assistant" && <BotIcon className="size-5" />
-                  }
+                  {message.role === "assistant" && (
+                    <BotIcon className="size-5" />
+                  )}
                   <div
                     className={`inline-block rounded-lg p-2 ${message.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted"}`}
                   >
@@ -205,10 +204,6 @@ export function Form({
                   }
                   setState("idle");
                 }}
-                disabled={
-                  messages.filter((m) => typeof m.content === "string")
-                    .length === 1
-                }
               >
                 Send
               </Button>
@@ -546,7 +541,15 @@ function GradingRenderer({ grading }: { grading: Grading }) {
   );
 }
 
-function ShortURLDialog({ form, shortURLs, clicks }: { form: FormType, shortURLs: formURLShortType[], clicks: formURLShortClicksType[] }) {
+function ShortURLDialog({
+  form,
+  shortURLs,
+  clicks,
+}: {
+  form: FormType;
+  shortURLs: formURLShortType[];
+  clicks: formURLShortClicksType[];
+}) {
   const [customURL, setCustomURL] = useState("");
 
   return (
@@ -581,7 +584,7 @@ function ShortURLDialog({ form, shortURLs, clicks }: { form: FormType, shortURLs
               void createShortURL({
                 formId: form.formId,
                 shortURL: customURL,
-                responderURI: form.responderUri
+                responderURI: form.responderUri,
               });
               setCustomURL("");
             }}
@@ -598,7 +601,8 @@ function ShortURLDialog({ form, shortURLs, clicks }: { form: FormType, shortURLs
                 <div className="flex items-center gap-4">
                   <span>{url.shortURL}</span>
                   <Badge variant="secondary">
-                    {clicks.filter((c) => c.formURLShortId === url.id).length} clicks
+                    {clicks.filter((c) => c.formURLShortId === url.id).length}{" "}
+                    clicks
                   </Badge>
                 </div>
               </AccordionTrigger>
@@ -614,7 +618,7 @@ function ShortURLDialog({ form, shortURLs, clicks }: { form: FormType, shortURLs
                       variant="outline"
                       onClick={() => {
                         void navigator.clipboard.writeText(
-                          `${window.location.origin}/f/${url.shortURL}`
+                          `${window.location.origin}/f/${url.shortURL}`,
                         );
                         toast.success("Copied to clipboard!");
                       }}
